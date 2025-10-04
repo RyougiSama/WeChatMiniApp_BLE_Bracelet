@@ -56,6 +56,20 @@
   margin-bottom: 20rpx;
 }
 
+.scan-tip {
+  background: #e6f7ff;
+  border: 1rpx solid #91d5ff;
+  border-radius: 6rpx;
+  padding: 15rpx;
+  margin-bottom: 20rpx;
+}
+
+.scan-tip text {
+  font-size: 24rpx;
+  color: #1890ff;
+  line-height: 1.4;
+}
+
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -85,6 +99,20 @@
 }
 
 .scan-btn:disabled {
+  background: #d9d9d9;
+  color: #999;
+}
+
+.refresh-btn {
+  background: #52c41a;
+  color: white;
+  border: none;
+  border-radius: 8rpx;
+  padding: 20rpx 30rpx;
+  font-size: 28rpx;
+}
+
+.refresh-btn:disabled {
   background: #d9d9d9;
   color: #999;
 }

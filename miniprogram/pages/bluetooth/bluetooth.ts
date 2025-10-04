@@ -27,10 +27,22 @@ Page({
 
   onLoad() {
     this.initBluetooth();
+    this.setupBluetoothListeners();
+  },
+
+  onShow() {
+    // 页面显示时检查蓝牙状态
+    this.checkBluetoothStatus();
+  },
+
+  onHide() {
+    // 页面隐藏时停止扫描
+    this.stopScan();
   },
 
   onUnload() {
-    this.disconnect();
+    // 页面卸载时清理所有蓝牙相关资源
+    this.cleanupBluetooth();
   },
 
   // 初始化蓝牙
@@ -50,6 +62,95 @@ Page({
     });
   },
 
+  // 设置蓝牙状态监听
+  setupBluetoothListeners() {
+    // 监听蓝牙适配器状态变化
+    wx.onBluetoothAdapterStateChange((res) => {
+      console.log('蓝牙适配器状态变化:', res);
+      this.setData({ bluetoothEnabled: res.available });
+      
+      if (!res.available) {
+        // 蓝牙关闭时清理连接
+        this.setData({
+          connected: false,
+          connectedDevice: null,
+          scanning: false,
+          devices: [],
+          receivedData: []
+        });
+      }
+    });
+
+    // 监听BLE连接状态变化
+    wx.onBLEConnectionStateChange((res) => {
+      console.log('BLE连接状态变化:', res);
+      if (!res.connected) {
+        // 连接断开时更新状态
+        this.setData({
+          connected: false,
+          connectedDevice: null,
+          receivedData: []
+        });
+        wx.showToast({
+          title: '设备连接已断开',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  // 检查蓝牙状态
+  checkBluetoothStatus() {
+    wx.getBluetoothAdapterState({
+      success: (res) => {
+        console.log('当前蓝牙状态:', res);
+        this.setData({ bluetoothEnabled: res.available });
+        
+        if (!res.available) {
+          wx.showToast({
+            title: '请开启蓝牙',
+            icon: 'none'
+          });
+        }
+      },
+      fail: () => {
+        // 蓝牙适配器未初始化，重新初始化
+        this.initBluetooth();
+      }
+    });
+  },
+
+  // 清理蓝牙资源
+  cleanupBluetooth() {
+    console.log('清理蓝牙资源');
+    
+    // 停止扫描
+    this.stopScan();
+    
+    // 断开连接
+    this.disconnect();
+    
+    // 移除所有监听器（传入空函数移除所有监听）
+    try {
+      wx.offBluetoothDeviceFound(() => {});
+      wx.offBluetoothAdapterStateChange(() => {});
+      wx.offBLEConnectionStateChange(() => {});
+      wx.offBLECharacteristicValueChange(() => {});
+    } catch (error) {
+      console.log('移除监听器:', error);
+    }
+    
+    // 关闭蓝牙适配器
+    wx.closeBluetoothAdapter({
+      success: () => {
+        console.log('蓝牙适配器已关闭');
+      },
+      fail: (err) => {
+        console.error('关闭蓝牙适配器失败:', err);
+      }
+    });
+  },
+
   // 开始扫描设备
   startScan() {
     if (!this.data.bluetoothEnabled) {
@@ -60,10 +161,16 @@ Page({
       return;
     }
 
+    // 先停止之前的扫描
+    this.stopScan();
+    
+    // 清空设备列表，重新开始
     this.setData({ 
       scanning: true,
       devices: []
     });
+
+    console.log('开始扫描蓝牙设备');
 
     // 监听设备发现
     wx.onBluetoothDeviceFound((result) => {
@@ -148,10 +255,21 @@ Page({
   // 断开连接
   disconnect() {
     if (this.data.connectedDevice) {
+      console.log('正在断开连接:', this.data.connectedDevice.name);
+      
       wx.closeBLEConnection({
         deviceId: this.data.connectedDevice.deviceId,
         success: () => {
           console.log('断开连接成功');
+          this.setData({
+            connected: false,
+            connectedDevice: null,
+            receivedData: []
+          });
+        },
+        fail: (err) => {
+          console.error('断开连接失败:', err);
+          // 即使断开失败，也要重置状态
           this.setData({
             connected: false,
             connectedDevice: null,
@@ -278,6 +396,12 @@ Page({
         });
       }
     });
+  },
+
+  // 刷新扫描
+  refreshScan() {
+    console.log('刷新扫描设备');
+    this.startScan();
   },
 
   // 清空接收数据

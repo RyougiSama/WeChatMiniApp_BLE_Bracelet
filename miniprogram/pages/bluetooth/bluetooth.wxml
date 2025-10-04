@@ -17,11 +17,19 @@
   <!-- 设备扫描区域 -->
   <view class="section" wx:if="{{!connected}}">
     <view class="section-title">设备扫描</view>
+    <view class="scan-tip">
+      <text>💡 如果扫描不到HC-08，请确保设备未被其他应用连接</text>
+    </view>
     <view class="scan-controls">
       <button class="scan-btn {{scanning ? 'scanning' : ''}}" 
               bindtap="startScan" 
               disabled="{{!bluetoothEnabled || scanning}}">
         {{scanning ? '扫描中...' : '开始扫描'}}
+      </button>
+      <button class="refresh-btn" bindtap="refreshScan" 
+              disabled="{{!bluetoothEnabled}}" 
+              wx:if="{{!scanning && devices.length > 0}}">
+        刷新
       </button>
       <button class="stop-btn" bindtap="stopScan" wx:if="{{scanning}}">
         停止扫描
