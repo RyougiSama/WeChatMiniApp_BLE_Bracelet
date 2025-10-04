@@ -1,15 +1,13 @@
 /**index.wxss**/
-page {
-  height: 100vh;
+.container {
   display: flex;
   flex-direction: column;
-}
-/**index.wxss**/
-.container {
+  justify-content: center;
   padding: 40rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   color: white;
+  box-sizing: border-box;
 }
 
 .header {
