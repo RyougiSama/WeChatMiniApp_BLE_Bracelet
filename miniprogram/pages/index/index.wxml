@@ -1,38 +1,33 @@
 <!--index.wxml-->
 <view class="container">
-  <!-- 头部区域 -->
-  <view class="header">
-    <view class="header-content">
-      <view class="app-info">
+  <!-- 欢迎头部区域 -->
+  <view class="welcome-header">
+    <view class="welcome-content">
+      <view class="logo-section">
+        <view class="app-logo">⌚</view>
         <text class="app-title">{{appName}}</text>
         <text class="app-version">{{version}}</text>
       </view>
-      <view class="app-icon">⌚</view>
-    </view>
-  </view>
-
-  <!-- 统计数据卡片 -->
-  <view class="stats-section">
-    <view class="stats-grid">
-      <view class="stat-card" wx:for="{{stats}}" wx:key="label">
-        <view class="stat-value">{{item.value}}</view>
-        <view class="stat-info">
-          <text class="stat-label">{{item.label}}</text>
-          <text class="stat-unit">{{item.unit}}</text>
-        </view>
+      <view class="welcome-text">
+        <text class="welcome-message">{{welcomeMessage}}</text>
+        <text class="welcome-desc">{{description}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 功能特性 -->
+  <!-- 核心功能介绍 -->
   <view class="features-section">
-    <view class="section-title">
-      <text class="title-text">智能功能</text>
+    <view class="section-header">
+      <text class="section-title">核心功能</text>
+      <text class="section-subtitle">为您提供完整的手环管理体验</text>
     </view>
+    
     <view class="features-grid">
       <view class="feature-card" wx:for="{{features}}" wx:key="title">
-        <view class="feature-icon">{{item.icon}}</view>
-        <view class="feature-content">
+        <view class="feature-icon-wrapper">
+          <text class="feature-icon">{{item.icon}}</text>
+        </view>
+        <view class="feature-info">
           <text class="feature-title">{{item.title}}</text>
           <text class="feature-desc">{{item.desc}}</text>
         </view>
@@ -40,16 +35,34 @@
     </view>
   </view>
 
-  <!-- 操作按钮 -->
-  <view class="action-section">
-    <button class="primary-btn" bindtap="goToBluetooth">
-      <text class="btn-text">连接智能手环</text>
-      <text class="btn-icon">→</text>
-    </button>
+  <!-- 开始使用区域 -->
+  <view class="start-section">
+    <view class="start-content">
+      <text class="start-title">开始您的健康之旅</text>
+      <text class="start-desc">连接手环后，您可以通过发送指令实时查询健康数据</text>
+      
+      <button class="connect-btn" bindtap="goToBluetooth">
+        <view class="btn-content">
+          <text class="btn-icon">🚀</text>
+          <text class="btn-text">连接智能手环</text>
+        </view>
+        <view class="btn-arrow">→</view>
+      </button>
+    </view>
   </view>
 
-  <!-- 底部提示 -->
-  <view class="footer-tip">
-    <text class="tip-text">请确保手环设备已开启并处于可发现状态</text>
+  <!-- 底部说明 -->
+  <view class="info-section">
+    <view class="info-card">
+      <view class="info-header">
+        <text class="info-icon">💡</text>
+        <text class="info-title">使用提示</text>
+      </view>
+      <view class="info-content">
+        <text class="info-text">• 确保手环电量充足并开启蓝牙</text>
+        <text class="info-text">• 将手环设置为配对模式</text>
+        <text class="info-text">• 连接后可发送指令查询数据</text>
+      </view>
+    </view>
   </view>
 </view>
