@@ -1,4 +1,6 @@
 {
-  "navigationBarTitleText": "蓝牙透传",
-  "enablePullDownRefresh": false
+  "navigationBarTitleText": "智能手环连接",
+  "enablePullDownRefresh": false,
+  "navigationBarBackgroundColor": "#4c6ef5",
+  "navigationBarTextStyle": "white"
 }

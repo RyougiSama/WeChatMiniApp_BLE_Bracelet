@@ -5,8 +5,8 @@
   ],
   "window": {
     "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "蓝牙透传助手",
-    "navigationBarBackgroundColor": "#1890ff"
+    "navigationBarTitleText": "蓝牙智能手环",
+    "navigationBarBackgroundColor": "#4c6ef5"
   },
   "permission": {
     "scope.userLocation": {

@@ -1,4 +1,8 @@
 {
+  "navigationBarBackgroundColor": "#4c6ef5",
+  "navigationBarTextStyle": "white",
+  "navigationBarTitleText": "蓝牙智能手环",
+  "enablePullDownRefresh": false,
   "usingComponents": {
   }
 }

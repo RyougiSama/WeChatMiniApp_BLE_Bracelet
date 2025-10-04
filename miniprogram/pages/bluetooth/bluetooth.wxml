@@ -1,94 +1,147 @@
 <!--bluetooth.wxml-->
 <view class="container">
-  <!-- 状态栏 -->
-  <view class="status-bar">
-    <view class="status-item">
-      <text class="status-label">蓝牙:</text>
-      <text class="status-value {{bluetoothEnabled ? 'enabled' : 'disabled'}}">
-        {{bluetoothEnabled ? '已开启' : '未开启'}}
-      </text>
+  <!-- 连接状态卡片 -->
+  <view class="status-card">
+    <view class="status-header">
+      <view class="status-icon {{bluetoothEnabled ? 'active' : 'inactive'}}">
+        {{bluetoothEnabled ? '📶' : '📵'}}
+      </view>
+      <view class="status-info">
+        <text class="status-title">连接状态</text>
+        <text class="status-desc">
+          {{connected ? '已连接' : (bluetoothEnabled ? '蓝牙已开启' : '蓝牙未开启')}}
+        </text>
+      </view>
     </view>
-    <view class="status-item" wx:if="{{connected}}">
-      <text class="status-label">设备:</text>
-      <text class="status-value enabled">{{connectedDevice.name}}</text>
+    <view class="device-info" wx:if="{{connected && connectedDevice}}">
+      <view class="device-badge">
+        <text class="device-name">{{connectedDevice.name}}</text>
+        <text class="device-signal">{{connectedDevice.RSSI}}dBm</text>
+      </view>
     </view>
   </view>
 
   <!-- 设备扫描区域 -->
-  <view class="section" wx:if="{{!connected}}">
-    <view class="section-title">设备扫描</view>
-    <view class="scan-tip">
-      <text>💡 如果扫描不到HC-08，请确保设备未被其他应用连接</text>
+  <view class="scan-section" wx:if="{{!connected}}">
+    <view class="section-header">
+      <text class="section-title">发现设备</text>
+      <text class="section-subtitle">搜索附近的智能手环</text>
     </view>
+
+    <!-- 扫描提示 -->
+    <view class="scan-tip">
+      <view class="tip-icon">💡</view>
+      <text class="tip-text">请确保手环处于配对模式且未被其他设备连接</text>
+    </view>
+
+    <!-- 扫描控制按钮 -->
     <view class="scan-controls">
       <button class="scan-btn {{scanning ? 'scanning' : ''}}" 
               bindtap="startScan" 
               disabled="{{!bluetoothEnabled || scanning}}">
-        {{scanning ? '扫描中...' : '开始扫描'}}
-      </button>
-      <button class="refresh-btn" bindtap="refreshScan" 
-              disabled="{{!bluetoothEnabled}}" 
-              wx:if="{{!scanning && devices.length > 0}}">
-        刷新
-      </button>
-      <button class="stop-btn" bindtap="stopScan" wx:if="{{scanning}}">
-        停止扫描
-      </button>
-    </view>
-
-    <!-- 设备列表 -->
-    <view class="device-list" wx:if="{{devices.length > 0}}">
-      <view class="device-item" 
-            wx:for="{{devices}}" 
-            wx:key="deviceId"
-            bindtap="connectDevice"
-            data-deviceid="{{item.deviceId}}">
-        <view class="device-info">
-          <text class="device-name">{{item.name}}</text>
-          <text class="device-signal">信号: {{item.RSSI}}dBm</text>
+        <view class="btn-content">
+          <text class="btn-icon">{{scanning ? '🔄' : '🔍'}}</text>
+          <text class="btn-text">{{scanning ? '扫描中...' : '开始扫描'}}</text>
         </view>
-        <view class="connect-icon">></view>
+      </button>
+      
+      <view class="control-buttons" wx:if="{{devices.length > 0 || scanning}}">
+        <button class="secondary-btn" bindtap="refreshScan" 
+                disabled="{{!bluetoothEnabled || scanning}}" 
+                wx:if="{{!scanning}}">
+          <text class="btn-text">刷新</text>
+        </button>
+        <button class="danger-btn" bindtap="stopScan" wx:if="{{scanning}}">
+          <text class="btn-text">停止</text>
+        </button>
       </view>
     </view>
 
-    <view class="empty-tip" wx:if="{{devices.length === 0 && !scanning}}">
-      <text>点击"开始扫描"搜索附近的蓝牙设备</text>
+    <!-- 设备列表 -->
+    <view class="device-section" wx:if="{{devices.length > 0}}">
+      <view class="device-header">
+        <text class="device-count">发现 {{devices.length}} 个设备</text>
+      </view>
+      <view class="device-list">
+        <view class="device-card" 
+              wx:for="{{devices}}" 
+              wx:key="deviceId"
+              bindtap="connectDevice"
+              data-deviceid="{{item.deviceId}}">
+          <view class="device-avatar">⌚</view>
+          <view class="device-details">
+            <text class="device-name">{{item.name || '未知设备'}}</text>
+            <text class="device-signal">信号强度: {{item.RSSI}}dBm</text>
+          </view>
+          <view class="connect-arrow">→</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{devices.length === 0 && !scanning}}">
+      <view class="empty-icon">🔍</view>
+      <text class="empty-title">未发现设备</text>
+      <text class="empty-desc">点击开始扫描按钮搜索附近的智能手环</text>
     </view>
   </view>
 
   <!-- 数据通信区域 -->
-  <view class="section" wx:if="{{connected}}">
+  <view class="communication-section" wx:if="{{connected}}">
     <view class="section-header">
       <text class="section-title">数据通信</text>
-      <button class="disconnect-btn" bindtap="disconnect">断开连接</button>
+      <button class="disconnect-btn" bindtap="disconnect">
+        <text class="btn-text">断开连接</text>
+      </button>
     </view>
 
-    <!-- 接收数据显示 -->
-    <view class="data-display">
-      <view class="data-header">
-        <text>接收数据</text>
-        <button class="clear-btn" bindtap="clearData">清空</button>
+    <!-- 数据监控面板 -->
+    <view class="data-panel">
+      <view class="panel-header">
+        <view class="panel-title">
+          <text class="title-text">实时数据</text>
+          <text class="title-status">●</text>
+        </view>
+        <button class="clear-btn" bindtap="clearData">
+          <text class="btn-text">清空</text>
+        </button>
       </view>
+      
       <scroll-view class="data-content" scroll-y scroll-top="{{receivedData.length * 100}}">
         <view class="data-item" wx:for="{{receivedData}}" wx:key="index">
-          <text>{{item}}</text>
+          <view class="data-time">{{index + 1}}</view>
+          <view class="data-message">{{item}}</view>
         </view>
         <view class="empty-data" wx:if="{{receivedData.length === 0}}">
-          <text>等待接收数据...</text>
+          <view class="empty-icon">📡</view>
+          <text class="empty-text">等待接收数据...</text>
         </view>
       </scroll-view>
     </view>
 
-    <!-- 发送数据 -->
-    <view class="send-section">
+    <!-- 指令发送区域 -->
+    <view class="send-panel">
+      <view class="send-header">
+        <text class="send-title">发送指令</text>
+      </view>
       <view class="input-group">
-        <input class="message-input" 
-               placeholder="输入要发送的指令..." 
+        <input class="command-input" 
+               placeholder="输入指令（如：heart_rate, steps）" 
                value="{{sendMessage}}"
                bindinput="onMessageInput"
                confirm-type="send"
                bindconfirm="sendData"/>
-        <button class="send-btn" bindtap="sendData">发送</button>
+        <button class="send-btn" bindtap="sendData" disabled="{{!sendMessage.trim()}}">
+          <text class="send-icon">📤</text>
+        </button>
+      </view>
+      
+      <!-- 快捷指令 -->
+      <view class="quick-commands">
+        <button class="quick-btn" bindtap="sendQuickCommand" data-command="heart_rate">心率</button>
+        <button class="quick-btn" bindtap="sendQuickCommand" data-command="steps">步数</button>
+        <button class="quick-btn" bindtap="sendQuickCommand" data-command="battery">电量</button>
+        <button class="quick-btn" bindtap="sendQuickCommand" data-command="sync">同步</button>
       </view>
     </view>
   </view>

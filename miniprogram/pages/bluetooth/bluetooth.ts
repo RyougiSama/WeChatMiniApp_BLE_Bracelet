@@ -407,5 +407,15 @@ Page({
   // 清空接收数据
   clearData() {
     this.setData({ receivedData: [] });
+  },
+
+  // 发送快捷指令
+  sendQuickCommand(e: any) {
+    const command = e.currentTarget.dataset.command;
+    if (!command) return;
+
+    // 设置指令到输入框并发送
+    this.setData({ sendMessage: command });
+    this.sendData();
   }
 });
