@@ -1,12 +1,17 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/logs/logs"
+    "pages/bluetooth/bluetooth"
   ],
   "window": {
-    "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "TEST",
-    "navigationBarBackgroundColor": "#ffffff"
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "蓝牙透传助手",
+    "navigationBarBackgroundColor": "#1890ff"
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "需要获取位置信息用于蓝牙设备扫描"
+    }
   },
   "style": "v2",
   "componentFramework": "glass-easel",

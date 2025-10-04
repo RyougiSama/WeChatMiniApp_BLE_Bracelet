@@ -1,0 +1,251 @@
+/* bluetooth.wxss */
+.container {
+  padding: 20rpx;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 状态栏 */
+.status-bar {
+  background: white;
+  border-radius: 10rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  justify-content: space-between;
+  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.1);
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+}
+
+.status-label {
+  font-size: 28rpx;
+  color: #666;
+  margin-right: 10rpx;
+}
+
+.status-value {
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.status-value.enabled {
+  color: #52c41a;
+}
+
+.status-value.disabled {
+  color: #ff4d4f;
+}
+
+/* 区域样式 */
+.section {
+  background: white;
+  border-radius: 10rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.1);
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+/* 扫描控制 */
+.scan-controls {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.scan-btn {
+  flex: 1;
+  background: linear-gradient(45deg, #1890ff, #40a9ff);
+  color: white;
+  border: none;
+  border-radius: 8rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+}
+
+.scan-btn.scanning {
+  background: linear-gradient(45deg, #faad14, #ffc53d);
+}
+
+.scan-btn:disabled {
+  background: #d9d9d9;
+  color: #999;
+}
+
+.stop-btn {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 8rpx;
+  padding: 20rpx 30rpx;
+  font-size: 28rpx;
+}
+
+.disconnect-btn {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 6rpx;
+  padding: 10rpx 20rpx;
+  font-size: 24rpx;
+}
+
+/* 设备列表 */
+.device-list {
+  border: 1rpx solid #e8e8e8;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.device-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25rpx 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  background: white;
+}
+
+.device-item:last-child {
+  border-bottom: none;
+}
+
+.device-item:active {
+  background: #f0f9ff;
+}
+
+.device-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.device-name {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 5rpx;
+}
+
+.device-signal {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.connect-icon {
+  font-size: 32rpx;
+  color: #1890ff;
+  font-weight: bold;
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 60rpx 20rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 数据显示区域 */
+.data-display {
+  margin-bottom: 30rpx;
+}
+
+.data-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15rpx;
+}
+
+.data-header text {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.clear-btn {
+  background: #fa8c16;
+  color: white;
+  border: none;
+  border-radius: 6rpx;
+  padding: 8rpx 16rpx;
+  font-size: 24rpx;
+}
+
+.data-content {
+  height: 400rpx;
+  border: 1rpx solid #e8e8e8;
+  border-radius: 8rpx;
+  padding: 15rpx;
+  background: #fafafa;
+}
+
+.data-item {
+  margin-bottom: 10rpx;
+  padding: 10rpx;
+  background: white;
+  border-radius: 6rpx;
+  font-size: 26rpx;
+  color: #333;
+  line-height: 1.4;
+}
+
+.empty-data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 发送区域 */
+.send-section {
+  border-top: 1rpx solid #e8e8e8;
+  padding-top: 20rpx;
+}
+
+.input-group {
+  display: flex;
+  gap: 15rpx;
+  align-items: center;
+}
+
+.message-input {
+  flex: 1;
+  border: 1rpx solid #d9d9d9;
+  border-radius: 8rpx;
+  padding: 20rpx 15rpx;
+  font-size: 28rpx;
+  background: white;
+}
+
+.message-input:focus {
+  border-color: #1890ff;
+}
+
+.send-btn {
+  background: linear-gradient(45deg, #52c41a, #73d13d);
+  color: white;
+  border: none;
+  border-radius: 8rpx;
+  padding: 20rpx 30rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}

@@ -1,27 +1,28 @@
 <!--index.wxml-->
-<scroll-view class="scrollarea" scroll-y type="list">
-  <view class="container">
-    <view class="userinfo">
-      <block wx:if="{{canIUseNicknameComp && !hasUserInfo}}">
-        <button class="avatar-wrapper" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-          <image class="avatar" src="{{userInfo.avatarUrl}}"></image>
-        </button>
-        <view class="nickname-wrapper">
-          <text class="nickname-label">昵称</text>
-          <input type="nickname" class="nickname-input" placeholder="请输入昵称" bind:change="onInputChange" />
-        </view>
-      </block>
-      <block wx:elif="{{!hasUserInfo}}">
-        <button wx:if="{{canIUseGetUserProfile}}" bindtap="getUserProfile"> 获取头像昵称 </button>
-        <view wx:else> 请使用2.10.4及以上版本基础库 </view>
-      </block>
-      <block wx:else>
-        <image bindtap="bindViewTap" class="userinfo-avatar" src="{{userInfo.avatarUrl}}" mode="cover"></image>
-        <text class="userinfo-nickname">{{userInfo.nickName}}</text>
-      </block>
-    </view>
-    <view class="usermotto">
-      <text class="user-motto">{{motto}}</text>
+<view class="container">
+  <!-- 头部标题 -->
+  <view class="header">
+    <view class="app-title">{{appName}}</view>
+    <view class="app-version">{{version}}</view>
+  </view>
+
+  <!-- 功能介绍 -->
+  <view class="features">
+    <view class="features-title">功能特性</view>
+    <view class="feature-item" wx:for="{{features}}" wx:key="index">
+      <text>{{item}}</text>
     </view>
   </view>
-</scroll-view>
+
+  <!-- 开始按钮 -->
+  <view class="action-section">
+    <button class="start-btn" bindtap="goToBluetooth">
+      开始使用蓝牙功能
+    </button>
+  </view>
+
+  <!-- 说明文字 -->
+  <view class="description">
+    <text class="desc-text">请确保设备已开启蓝牙功能，并准备好HC-08蓝牙模块</text>
+  </view>
+</view>

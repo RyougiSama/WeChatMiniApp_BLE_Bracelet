@@ -4,59 +4,80 @@ page {
   display: flex;
   flex-direction: column;
 }
-.scrollarea {
-  flex: 1;
-  overflow-y: hidden;
+/**index.wxss**/
+.container {
+  padding: 40rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: white;
 }
 
-.userinfo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #aaa;
-  width: 80%;
+.header {
+  text-align: center;
+  margin-bottom: 80rpx;
+  padding-top: 60rpx;
 }
 
-.userinfo-avatar {
-  overflow: hidden;
-  width: 128rpx;
-  height: 128rpx;
-  margin: 20rpx;
-  border-radius: 50%;
+.app-title {
+  font-size: 48rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
 }
 
-.usermotto {
-  margin-top: 200px;
+.app-version {
+  font-size: 28rpx;
+  opacity: 0.8;
 }
 
-.avatar-wrapper {
-  padding: 0;
-  width: 56px !important;
-  border-radius: 8px;
-  margin-top: 40px;
-  margin-bottom: 40px;
+.features {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20rpx;
+  padding: 40rpx;
+  margin-bottom: 60rpx;
+  backdrop-filter: blur(10rpx);
 }
 
-.avatar {
-  display: block;
-  width: 56px;
-  height: 56px;
+.features-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+  text-align: center;
 }
 
-.nickname-wrapper {
-  display: flex;
-  width: 100%;
-  padding: 16px;
-  box-sizing: border-box;
-  border-top: .5px solid rgba(0, 0, 0, 0.1);
-  border-bottom: .5px solid rgba(0, 0, 0, 0.1);
-  color: black;
+.feature-item {
+  margin-bottom: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
 }
 
-.nickname-label {
-  width: 105px;
+.action-section {
+  margin: 60rpx 0;
+  text-align: center;
 }
 
-.nickname-input {
-  flex: 1;
+.start-btn {
+  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  border-radius: 50rpx;
+  padding: 30rpx 60rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.2);
+}
+
+.start-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 5rpx 15rpx rgba(0, 0, 0, 0.2);
+}
+
+.description {
+  text-align: center;
+  margin-top: 40rpx;
+}
+
+.desc-text {
+  font-size: 24rpx;
+  opacity: 0.7;
+  line-height: 1.5;
 }

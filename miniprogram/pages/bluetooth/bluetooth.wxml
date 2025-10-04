@@ -1,0 +1,87 @@
+<!--bluetooth.wxml-->
+<view class="container">
+  <!-- 状态栏 -->
+  <view class="status-bar">
+    <view class="status-item">
+      <text class="status-label">蓝牙:</text>
+      <text class="status-value {{bluetoothEnabled ? 'enabled' : 'disabled'}}">
+        {{bluetoothEnabled ? '已开启' : '未开启'}}
+      </text>
+    </view>
+    <view class="status-item" wx:if="{{connected}}">
+      <text class="status-label">设备:</text>
+      <text class="status-value enabled">{{connectedDevice.name}}</text>
+    </view>
+  </view>
+
+  <!-- 设备扫描区域 -->
+  <view class="section" wx:if="{{!connected}}">
+    <view class="section-title">设备扫描</view>
+    <view class="scan-controls">
+      <button class="scan-btn {{scanning ? 'scanning' : ''}}" 
+              bindtap="startScan" 
+              disabled="{{!bluetoothEnabled || scanning}}">
+        {{scanning ? '扫描中...' : '开始扫描'}}
+      </button>
+      <button class="stop-btn" bindtap="stopScan" wx:if="{{scanning}}">
+        停止扫描
+      </button>
+    </view>
+
+    <!-- 设备列表 -->
+    <view class="device-list" wx:if="{{devices.length > 0}}">
+      <view class="device-item" 
+            wx:for="{{devices}}" 
+            wx:key="deviceId"
+            bindtap="connectDevice"
+            data-deviceid="{{item.deviceId}}">
+        <view class="device-info">
+          <text class="device-name">{{item.name}}</text>
+          <text class="device-signal">信号: {{item.RSSI}}dBm</text>
+        </view>
+        <view class="connect-icon">></view>
+      </view>
+    </view>
+
+    <view class="empty-tip" wx:if="{{devices.length === 0 && !scanning}}">
+      <text>点击"开始扫描"搜索附近的蓝牙设备</text>
+    </view>
+  </view>
+
+  <!-- 数据通信区域 -->
+  <view class="section" wx:if="{{connected}}">
+    <view class="section-header">
+      <text class="section-title">数据通信</text>
+      <button class="disconnect-btn" bindtap="disconnect">断开连接</button>
+    </view>
+
+    <!-- 接收数据显示 -->
+    <view class="data-display">
+      <view class="data-header">
+        <text>接收数据</text>
+        <button class="clear-btn" bindtap="clearData">清空</button>
+      </view>
+      <scroll-view class="data-content" scroll-y scroll-top="{{receivedData.length * 100}}">
+        <view class="data-item" wx:for="{{receivedData}}" wx:key="index">
+          <text>{{item}}</text>
+        </view>
+        <view class="empty-data" wx:if="{{receivedData.length === 0}}">
+          <text>等待接收数据...</text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 发送数据 -->
+    <view class="send-section">
+      <view class="input-group">
+        <input class="message-input" 
+               placeholder="输入要发送的指令..." 
+               value="{{sendMessage}}"
+               bindinput="onMessageInput"
+               confirm-type="send"
+               bindconfirm="sendData"/>
+        <button class="send-btn" bindtap="sendData">发送</button>
+      </view>
+    </view>
+  </view>
+</view>
