@@ -102,15 +102,31 @@
           <text class="title-text">实时数据</text>
           <text class="title-status">●</text>
         </view>
-        <button class="clear-btn" bindtap="clearData">
-          <text class="btn-text">清空</text>
-        </button>
+        <view class="panel-controls">
+          <button class="mode-toggle" bindtap="toggleDisplayMode">
+            <text class="mode-text">{{displayMode === 'ascii' ? 'ASCII' : 'HEX'}}</text>
+            <text class="mode-icon">🔄</text>
+          </button>
+          <button class="clear-btn" bindtap="clearData">
+            <text class="btn-text">清空</text>
+          </button>
+        </view>
       </view>
       
       <scroll-view class="data-content" scroll-y scroll-top="{{receivedData.length * 100}}">
-        <view class="data-item" wx:for="{{receivedData}}" wx:key="index">
-          <view class="data-time">{{index + 1}}</view>
-          <view class="data-message">{{item}}</view>
+        <view class="data-item {{item.type}}" wx:for="{{receivedData}}" wx:key="index">
+          <view class="data-indicator">
+            <text class="data-icon">{{item.type === 'send' ? '📤' : '📥'}}</text>
+            <text class="data-time">{{item.timestamp}}</text>
+          </view>
+          <view class="data-content-wrapper">
+            <view class="data-message" wx:if="{{displayMode === 'ascii'}}">
+              {{item.command || item.ascii}}
+            </view>
+            <view class="data-message hex-message" wx:if="{{displayMode === 'hex'}}">
+              {{item.hex}}
+            </view>
+          </view>
         </view>
         <view class="empty-data" wx:if="{{receivedData.length === 0}}">
           <view class="empty-icon">📡</view>

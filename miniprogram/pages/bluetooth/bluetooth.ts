@@ -5,6 +5,14 @@ interface BluetoothDevice {
   RSSI: number;
 }
 
+interface DataRecord {
+  timestamp: string;
+  type: 'send' | 'receive';
+  command?: string;
+  ascii: string;
+  hex: string;
+}
+
 Page({
   data: {
     // 蓝牙状态
@@ -17,7 +25,8 @@ Page({
     connectedDevice: null as BluetoothDevice | null,
     
     // 数据通信
-    receivedData: [] as string[],
+    receivedData: [] as DataRecord[],
+    displayMode: 'ascii', // 显示模式：'ascii' 或 'hex'
     
     // 服务和特征值UUID (HC-08默认)
     serviceUUID: 'FFE0',
@@ -263,7 +272,8 @@ Page({
           this.setData({
             connected: false,
             connectedDevice: null,
-            receivedData: []
+            receivedData: [],
+            displayMode: 'ascii'
           });
         },
         fail: (err) => {
@@ -272,7 +282,8 @@ Page({
           this.setData({
             connected: false,
             connectedDevice: null,
-            receivedData: []
+            receivedData: [],
+            displayMode: 'ascii'
           });
         }
       });
@@ -333,9 +344,15 @@ Page({
       const hexData = this.arrayBufferToHexString(result.value);
       const timeStamp = new Date().toLocaleTimeString();
       
-      // 优化显示格式
-      const displayData = `${timeStamp} 📥 ${asciiData} [${hexData}]`;
-      const newData = [...this.data.receivedData, displayData];
+      // 创建数据记录
+      const dataRecord: DataRecord = {
+        timestamp: timeStamp,
+        type: 'receive',
+        ascii: asciiData,
+        hex: hexData
+      };
+      
+      const newData = [...this.data.receivedData, dataRecord];
       this.setData({ receivedData: newData });
     });
   },
@@ -380,6 +397,18 @@ Page({
   // 清空接收数据
   clearData() {
     this.setData({ receivedData: [] });
+  },
+
+  // 切换显示模式
+  toggleDisplayMode() {
+    const newMode = this.data.displayMode === 'ascii' ? 'hex' : 'ascii';
+    this.setData({ displayMode: newMode });
+    
+    wx.showToast({
+      title: `切换到${newMode === 'ascii' ? 'ASCII' : 'HEX'}模式`,
+      icon: 'success',
+      duration: 1000
+    });
   },
 
   // 构造标准指令数据包
@@ -456,8 +485,17 @@ Page({
       success: () => {
         console.log(`发送${command}指令成功:`, hexString);
         const timeStamp = new Date().toLocaleTimeString();
-        const displayMessage = `${timeStamp} 📤 ${command.toUpperCase()} [${hexString}]`;
-        const newData = [...this.data.receivedData, displayMessage];
+        
+        // 创建发送数据记录
+        const dataRecord: DataRecord = {
+          timestamp: timeStamp,
+          type: 'send',
+          command: command.toUpperCase(),
+          ascii: command.toUpperCase(),
+          hex: hexString
+        };
+        
+        const newData = [...this.data.receivedData, dataRecord];
         this.setData({ receivedData: newData });
         
         wx.showToast({
