@@ -357,35 +357,46 @@
 
 /* 数据面板 */
 .data-panel {
+  background: white;
+  border-radius: 16rpx;
+  padding: 24rpx;
   margin-bottom: 32rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+  border: 1rpx solid #f0f0f0;
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20rpx;
+  margin-bottom: 24rpx;
+  min-height: 56rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .panel-title {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 16rpx;
+  flex-shrink: 0;
 }
 
 .title-text {
-  font-size: 30rpx;
-  font-weight: 600;
+  font-size: 32rpx;
+  font-weight: 700;
   color: #333;
+  line-height: 1.3;
+  letter-spacing: 0.5rpx;
+  white-space: nowrap;
 }
 
 .title-status {
-  width: 12rpx;
-  height: 12rpx;
+  width: 16rpx;
+  height: 16rpx;
   background: #52c41a;
   border-radius: 50%;
-  color: #52c41a;
-  font-size: 12rpx;
+  flex-shrink: 0;
   animation: pulse 2s infinite;
 }
 
@@ -396,22 +407,30 @@
 
 .panel-controls {
   display: flex;
-  gap: 12rpx;
+  gap: 10rpx;
   align-items: center;
+  flex-shrink: 0;
+  max-width: 55%;
 }
 
 .mode-toggle {
-  background: #f8f9fa;
-  border: 1rpx solid #e9ecef;
-  border-radius: 8rpx;
-  padding: 8rpx 16rpx;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1rpx solid #dee2e6;
+  border-radius: 10rpx;
+  padding: 8rpx 18rpx;
   font-size: 22rpx;
-  font-weight: 500;
-  height: 52rpx;
+  font-weight: 600;
+  height: 50rpx;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6rpx;
   transition: all 0.3s ease;
+  min-width: 110rpx;
+  max-width: 140rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  flex-shrink: 1;
+  white-space: nowrap;
 }
 
 .mode-toggle:active {
@@ -439,21 +458,36 @@
 }
 
 .clear-btn {
-  background: #ffc107;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
   color: white;
   border: none;
-  border-radius: 8rpx;
-  padding: 12rpx 20rpx;
-  font-size: 24rpx;
-  font-weight: 500;
-  height: 52rpx;
+  border-radius: 10rpx;
+  padding: 8rpx 16rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  height: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 85rpx;
+  max-width: 110rpx;
+  box-shadow: 0 2rpx 8rpx rgba(255, 107, 107, 0.2);
+  transition: all 0.3s ease;
+  flex-shrink: 1;
+  white-space: nowrap;
+}
+
+.clear-btn:hover {
+  background: linear-gradient(135deg, #ee5a24 0%, #c23616 100%);
+  transform: translateY(-1rpx);
+  box-shadow: 0 3rpx 10rpx rgba(255, 107, 107, 0.3);
 }
 
 .data-content {
-  height: 400rpx;
+  height: 500rpx;
   background: #f8f9fa;
   border-radius: 12rpx;
-  padding: 20rpx;
+  padding: 24rpx;
   border: 1rpx solid #e9ecef;
   box-sizing: border-box;
 }
@@ -461,9 +495,9 @@
 .data-item {
   display: flex;
   align-items: flex-start;
-  gap: 16rpx;
-  margin-bottom: 16rpx;
-  padding: 16rpx;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+  padding: 20rpx;
   background: white;
   border-radius: 12rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
@@ -510,23 +544,28 @@
 }
 
 .data-message {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: #333;
-  line-height: 1.5;
+  line-height: 1.8;
   word-break: break-all;
-  padding: 8rpx 12rpx;
+  padding: 12rpx 16rpx;
   background: #f8f9fa;
-  border-radius: 8rpx;
+  border-radius: 10rpx;
   transition: all 0.3s ease;
+  min-height: 50rpx;
+  display: flex;
+  align-items: center;
 }
 
 .data-message.hex-message {
   font-family: 'Courier New', Monaco, 'Lucida Console', monospace;
   font-weight: 500;
-  letter-spacing: 1rpx;
+  letter-spacing: 2rpx;
   background: #fff3cd;
   color: #856404;
   border: 1rpx solid #ffeaa7;
+  padding: 12rpx 16rpx;
+  min-height: 50rpx;
 }
 
 .empty-data {
@@ -693,6 +732,38 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+/* 响应式设计 - 小屏幕适配 */
+@media (max-width: 375px) {
+  .panel-controls {
+    gap: 8rpx;
+    max-width: 60%;
+  }
+  
+  .mode-toggle {
+    padding: 6rpx 14rpx;
+    font-size: 20rpx;
+    height: 44rpx;
+    min-width: 100rpx;
+    max-width: 120rpx;
+  }
+  
+  .clear-btn {
+    padding: 6rpx 12rpx;
+    font-size: 20rpx;
+    height: 44rpx;
+    min-width: 75rpx;
+    max-width: 95rpx;
+  }
+  
+  .title-text {
+    font-size: 28rpx;
+  }
+  
+  .data-content {
+    height: 450rpx;
+  }
 }
 
 .indicator-dot {
