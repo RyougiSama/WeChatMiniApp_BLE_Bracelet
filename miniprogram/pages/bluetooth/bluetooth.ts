@@ -19,6 +19,7 @@ Page({
     // 数据通信
     receivedData: [] as string[],
     sendMessage: '',
+    dataFormat: 'ascii', // 数据格式：'ascii' 或 'hex'
     
     // 服务和特征值UUID (HC-08默认)
     serviceUUID: 'FFE0',
@@ -330,8 +331,13 @@ Page({
   // 监听数据接收
   listenForData() {
     wx.onBLECharacteristicValueChange((result) => {
-      const data = this.arrayBufferToString(result.value);
-      const newData = [...this.data.receivedData, `${new Date().toLocaleTimeString()}: ${data}`];
+      const asciiData = this.arrayBufferToString(result.value);
+      const hexData = this.arrayBufferToHexString(result.value);
+      const timeStamp = new Date().toLocaleTimeString();
+      
+      // 同时显示ASCII和HEX格式
+      const displayData = `${timeStamp} - ASCII: ${asciiData} | HEX: ${hexData}`;
+      const newData = [...this.data.receivedData, displayData];
       this.setData({ receivedData: newData });
     });
   },
@@ -346,13 +352,38 @@ Page({
     return result;
   },
 
-  // 字符串转ArrayBuffer
+  // 字符串转ArrayBuffer (ASCII模式)
   stringToArrayBuffer(str: string): ArrayBuffer {
     const bytes = new Uint8Array(str.length);
     for (let i = 0; i < str.length; i++) {
       bytes[i] = str.charCodeAt(i);
     }
     return bytes.buffer;
+  },
+
+  // HEX字符串转ArrayBuffer (新增)
+  hexStringToArrayBuffer(hexStr: string): ArrayBuffer {
+    // 移除空格和0x前缀
+    const cleanHex = hexStr.replace(/[\s0x]/g, '');
+    
+    // 确保偶数长度
+    const paddedHex = cleanHex.length % 2 === 0 ? cleanHex : '0' + cleanHex;
+    
+    const bytes = new Uint8Array(paddedHex.length / 2);
+    for (let i = 0; i < paddedHex.length; i += 2) {
+      bytes[i / 2] = parseInt(paddedHex.substr(i, 2), 16);
+    }
+    return bytes.buffer;
+  },
+
+  // ArrayBuffer转HEX字符串 (新增)
+  arrayBufferToHexString(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer);
+    let result = '';
+    for (let i = 0; i < bytes.length; i++) {
+      result += bytes[i].toString(16).padStart(2, '0').toUpperCase() + ' ';
+    }
+    return result.trim();
   },
 
   // 输入框变化
@@ -371,7 +402,25 @@ Page({
     }
 
     const message = this.data.sendMessage;
-    const buffer = this.stringToArrayBuffer(message);
+    let buffer: ArrayBuffer;
+    let displayMessage = message;
+
+    try {
+      // 根据选择的格式转换数据
+      if (this.data.dataFormat === 'hex') {
+        buffer = this.hexStringToArrayBuffer(message);
+        displayMessage = `HEX: ${message}`;
+      } else {
+        buffer = this.stringToArrayBuffer(message);
+        displayMessage = `ASCII: ${message}`;
+      }
+    } catch (error) {
+      wx.showToast({
+        title: this.data.dataFormat === 'hex' ? 'HEX格式错误' : '数据格式错误',
+        icon: 'none'
+      });
+      return;
+    }
 
     // 这里需要根据实际连接的特征值来发送
     // 暂时使用示例，实际需要保存连接时的serviceId和characteristicId
@@ -381,8 +430,8 @@ Page({
       characteristicId: `0000${this.data.characteristicUUID}-0000-1000-8000-00805F9B34FB`,
       value: buffer,
       success: () => {
-        console.log('发送成功:', message);
-        const newData = [...this.data.receivedData, `发送: ${message}`];
+        console.log('发送成功:', message, '格式:', this.data.dataFormat);
+        const newData = [...this.data.receivedData, `发送: ${displayMessage}`];
         this.setData({ 
           receivedData: newData,
           sendMessage: ''
@@ -409,13 +458,108 @@ Page({
     this.setData({ receivedData: [] });
   },
 
+  // 构造标准指令数据包
+  buildCommandPacket(commandCode: number): ArrayBuffer {
+    const frameHeader = 0xAA;      // 帧头
+    const dataLength = 0x04;       // 指令长度
+    const commandId = commandCode; // 指令编号
+    
+    // 计算校验和（AA + 04 + 指令编号，取低8位）
+    const checksum = (frameHeader + dataLength + commandId) & 0xFF;
+    
+    // 构造4字节数据包
+    const packet = new Uint8Array(4);
+    packet[0] = frameHeader;  // 0xAA
+    packet[1] = dataLength;   // 0x04
+    packet[2] = commandId;    // 指令编号
+    packet[3] = checksum;     // 校验和
+    
+    console.log(`构造指令包: [${packet[0].toString(16).toUpperCase()}, ${packet[1].toString(16).toUpperCase()}, ${packet[2].toString(16).toUpperCase()}, ${packet[3].toString(16).toUpperCase()}]`);
+    
+    return packet.buffer;
+  },
+
+  // 获取指令编号映射
+  getCommandCode(command: string): number {
+    const commandMap: { [key: string]: number } = {
+      'heart_rate': 0x01,  // 心率指令
+      'steps': 0x02,       // 步数指令
+      'battery': 0x03,     // 电量指令
+      'sync': 0x04         // 同步指令
+    };
+    
+    return commandMap[command] || 0x00;
+  },
+
   // 发送快捷指令
   sendQuickCommand(e: any) {
     const command = e.currentTarget.dataset.command;
     if (!command) return;
 
-    // 设置指令到输入框并发送
-    this.setData({ sendMessage: command });
-    this.sendData();
+    if (!this.data.connected || !this.data.connectedDevice) {
+      wx.showToast({
+        title: '请先连接设备',
+        icon: 'none'
+      });
+      return;
+    }
+
+    // 获取指令编号
+    const commandCode = this.getCommandCode(command);
+    if (commandCode === 0x00) {
+      wx.showToast({
+        title: '未知指令',
+        icon: 'none'
+      });
+      return;
+    }
+
+    // 构造标准数据包
+    const packetBuffer = this.buildCommandPacket(commandCode);
+    
+    // 生成HEX显示字符串
+    const hexBytes = new Uint8Array(packetBuffer);
+    const hexString = Array.from(hexBytes)
+      .map(byte => byte.toString(16).toUpperCase().padStart(2, '0'))
+      .join(' ');
+
+    // 直接发送数据包
+    wx.writeBLECharacteristicValue({
+      deviceId: this.data.connectedDevice.deviceId,
+      serviceId: `0000${this.data.serviceUUID}-0000-1000-8000-00805F9B34FB`,
+      characteristicId: `0000${this.data.characteristicUUID}-0000-1000-8000-00805F9B34FB`,
+      value: packetBuffer,
+      success: () => {
+        console.log(`发送${command}指令成功:`, hexString);
+        const displayMessage = `发送指令: ${command.toUpperCase()} [${hexString}]`;
+        const newData = [...this.data.receivedData, displayMessage];
+        this.setData({ receivedData: newData });
+        
+        wx.showToast({
+          title: `${command}指令已发送`,
+          icon: 'success',
+          duration: 1500
+        });
+      },
+      fail: (err) => {
+        console.error(`发送${command}指令失败:`, err);
+        wx.showToast({
+          title: '指令发送失败',
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  // 切换数据格式
+  toggleDataFormat() {
+    const newFormat = this.data.dataFormat === 'ascii' ? 'hex' : 'ascii';
+    this.setData({ dataFormat: newFormat });
+    
+    wx.showToast({
+      title: `切换到${newFormat === 'ascii' ? 'ASCII' : 'HEX'}模式`,
+      icon: 'success',
+      duration: 1500
+    });
   }
 });

@@ -123,10 +123,14 @@
     <view class="send-panel">
       <view class="send-header">
         <text class="send-title">发送指令</text>
+        <button class="format-toggle" bindtap="toggleDataFormat">
+          <text class="format-text">{{dataFormat === 'ascii' ? 'ASCII' : 'HEX'}}</text>
+          <text class="format-icon">🔄</text>
+        </button>
       </view>
       <view class="input-group">
         <input class="command-input" 
-               placeholder="输入指令（如：heart_rate, steps）" 
+               placeholder="{{dataFormat === 'ascii' ? '输入ASCII指令（如：heart_rate）' : '输入HEX指令（如：01 02 03）'}}" 
                value="{{sendMessage}}"
                bindinput="onMessageInput"
                confirm-type="send"
@@ -137,11 +141,41 @@
       </view>
       
       <!-- 快捷指令 -->
-      <view class="quick-commands">
-        <button class="quick-btn" bindtap="sendQuickCommand" data-command="heart_rate">心率</button>
-        <button class="quick-btn" bindtap="sendQuickCommand" data-command="steps">步数</button>
-        <button class="quick-btn" bindtap="sendQuickCommand" data-command="battery">电量</button>
-        <button class="quick-btn" bindtap="sendQuickCommand" data-command="sync">同步</button>
+      <view class="quick-commands-section">
+        <view class="commands-header">
+          <text class="commands-title">快捷指令</text>
+          <text class="commands-desc">标准4字节数据包</text>
+        </view>
+        <view class="quick-commands">
+          <button class="quick-btn" bindtap="sendQuickCommand" data-command="heart_rate">
+            <view class="btn-content">
+              <text class="btn-icon">💓</text>
+              <text class="btn-label">心率</text>
+              <text class="btn-code">0x01</text>
+            </view>
+          </button>
+          <button class="quick-btn" bindtap="sendQuickCommand" data-command="steps">
+            <view class="btn-content">
+              <text class="btn-icon">👟</text>
+              <text class="btn-label">步数</text>
+              <text class="btn-code">0x02</text>
+            </view>
+          </button>
+          <button class="quick-btn" bindtap="sendQuickCommand" data-command="battery">
+            <view class="btn-content">
+              <text class="btn-icon">🔋</text>
+              <text class="btn-label">电量</text>
+              <text class="btn-code">0x03</text>
+            </view>
+          </button>
+          <button class="quick-btn" bindtap="sendQuickCommand" data-command="sync">
+            <view class="btn-content">
+              <text class="btn-icon">🔄</text>
+              <text class="btn-label">同步</text>
+              <text class="btn-code">0x04</text>
+            </view>
+          </button>
+        </view>
       </view>
     </view>
   </view>
