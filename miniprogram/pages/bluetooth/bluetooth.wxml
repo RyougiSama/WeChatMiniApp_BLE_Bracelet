@@ -119,63 +119,66 @@
       </scroll-view>
     </view>
 
-    <!-- 指令发送区域 -->
-    <view class="send-panel">
-      <view class="send-header">
-        <text class="send-title">发送指令</text>
-        <button class="format-toggle" bindtap="toggleDataFormat">
-          <text class="format-text">{{dataFormat === 'ascii' ? 'ASCII' : 'HEX'}}</text>
-          <text class="format-icon">🔄</text>
-        </button>
-      </view>
-      <view class="input-group">
-        <input class="command-input" 
-               placeholder="{{dataFormat === 'ascii' ? '输入ASCII指令（如：heart_rate）' : '输入HEX指令（如：01 02 03）'}}" 
-               value="{{sendMessage}}"
-               bindinput="onMessageInput"
-               confirm-type="send"
-               bindconfirm="sendData"/>
-        <button class="send-btn" bindtap="sendData" disabled="{{!sendMessage.trim()}}">
-          <text class="send-icon">📤</text>
-        </button>
+    <!-- 智能控制面板 -->
+    <view class="control-panel">
+      <view class="panel-header">
+        <text class="panel-title">智能控制</text>
+        <text class="panel-subtitle">点击按钮获取手环数据</text>
       </view>
       
-      <!-- 快捷指令 -->
-      <view class="quick-commands-section">
-        <view class="commands-header">
-          <text class="commands-title">快捷指令</text>
-          <text class="commands-desc">标准4字节数据包</text>
-        </view>
-        <view class="quick-commands">
-          <button class="quick-btn" bindtap="sendQuickCommand" data-command="heart_rate">
-            <view class="btn-content">
-              <text class="btn-icon">💓</text>
-              <text class="btn-label">心率</text>
-              <text class="btn-code">0x01</text>
-            </view>
-          </button>
-          <button class="quick-btn" bindtap="sendQuickCommand" data-command="steps">
-            <view class="btn-content">
-              <text class="btn-icon">👟</text>
-              <text class="btn-label">步数</text>
-              <text class="btn-code">0x02</text>
-            </view>
-          </button>
-          <button class="quick-btn" bindtap="sendQuickCommand" data-command="battery">
-            <view class="btn-content">
-              <text class="btn-icon">🔋</text>
-              <text class="btn-label">电量</text>
-              <text class="btn-code">0x03</text>
-            </view>
-          </button>
-          <button class="quick-btn" bindtap="sendQuickCommand" data-command="sync">
-            <view class="btn-content">
-              <text class="btn-icon">🔄</text>
-              <text class="btn-label">同步</text>
-              <text class="btn-code">0x04</text>
-            </view>
-          </button>
-        </view>
+      <!-- 控制按钮网格 -->
+      <view class="control-grid">
+        <button class="control-btn heart-rate" bindtap="sendQuickCommand" data-command="heart_rate">
+          <view class="btn-icon-wrapper">
+            <text class="btn-icon">💓</text>
+          </view>
+          <view class="btn-info">
+            <text class="btn-title">心率监测</text>
+            <text class="btn-desc">获取实时心率数据</text>
+          </view>
+          <view class="btn-indicator">
+            <text class="indicator-dot">●</text>
+          </view>
+        </button>
+        
+        <button class="control-btn steps" bindtap="sendQuickCommand" data-command="steps">
+          <view class="btn-icon-wrapper">
+            <text class="btn-icon">�</text>
+          </view>
+          <view class="btn-info">
+            <text class="btn-title">步数统计</text>
+            <text class="btn-desc">查看今日步数数据</text>
+          </view>
+          <view class="btn-indicator">
+            <text class="indicator-dot">●</text>
+          </view>
+        </button>
+        
+        <button class="control-btn battery" bindtap="sendQuickCommand" data-command="battery">
+          <view class="btn-icon-wrapper">
+            <text class="btn-icon">🔋</text>
+          </view>
+          <view class="btn-info">
+            <text class="btn-title">电量查询</text>
+            <text class="btn-desc">检查设备电量状态</text>
+          </view>
+          <view class="btn-indicator">
+            <text class="indicator-dot">●</text>
+          </view>
+        </button>
+        
+        <button class="control-btn sync" bindtap="sendQuickCommand" data-command="sync">
+          <view class="btn-icon-wrapper">
+            <text class="btn-icon">🔄</text>
+          </view>
+          <view class="btn-info">
+            <text class="btn-title">数据同步</text>
+            <text class="btn-desc">同步所有健康数据</text>
+          </view>
+          <view class="btn-indicator">
+            <text class="indicator-dot">●</text>
+          </view>
+        </button>
       </view>
     </view>
   </view>
