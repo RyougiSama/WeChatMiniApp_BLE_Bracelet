@@ -144,6 +144,19 @@
       
       <!-- 控制按钮网格 -->
       <view class="control-grid">
+        <button class="control-btn temperature" bindtap="sendQuickCommand" data-command="temperature">
+          <view class="btn-icon-wrapper">
+            <text class="btn-icon">🌡️</text>
+          </view>
+          <view class="btn-info">
+            <text class="btn-title">温度检测</text>
+            <text class="btn-desc">获取实时温度数据</text>
+          </view>
+          <view class="btn-indicator">
+            <text class="indicator-dot">●</text>
+          </view>
+        </button>
+        
         <button class="control-btn heart-rate" bindtap="sendQuickCommand" data-command="heart_rate">
           <view class="btn-icon-wrapper">
             <text class="btn-icon">💓</text>

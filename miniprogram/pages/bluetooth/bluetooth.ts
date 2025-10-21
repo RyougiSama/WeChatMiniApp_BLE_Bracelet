@@ -19,19 +19,25 @@ Page({
     bluetoothEnabled: false,
     scanning: false,
     connected: false,
-    
+
     // 设备列表
     devices: [] as BluetoothDevice[],
     connectedDevice: null as BluetoothDevice | null,
-    
+
     // 数据通信
     receivedData: [] as DataRecord[],
     displayMode: 'ascii', // 显示模式：'ascii' 或 'hex'
-    
+
     // 服务和特征值UUID (HC-08默认)
     serviceUUID: 'FFE0',
     characteristicUUID: 'FFE1'
   },
+
+  // 数据缓存相关属性
+  dataBuffer: '',
+  hexBuffer: '',
+  dataTimer: null as any,
+  mergeTimeout: 300, // 数据合并超时时间(毫秒)，可根据设备调整
 
   onLoad() {
     this.initBluetooth();
@@ -51,6 +57,7 @@ Page({
   onUnload() {
     // 页面卸载时清理所有蓝牙相关资源
     this.cleanupBluetooth();
+    this.clearDataTimer();
   },
 
   // 初始化蓝牙
@@ -76,7 +83,7 @@ Page({
     wx.onBluetoothAdapterStateChange((res) => {
       console.log('蓝牙适配器状态变化:', res);
       this.setData({ bluetoothEnabled: res.available });
-      
+
       if (!res.available) {
         // 蓝牙关闭时清理连接
         this.setData({
@@ -113,7 +120,7 @@ Page({
       success: (res) => {
         console.log('当前蓝牙状态:', res);
         this.setData({ bluetoothEnabled: res.available });
-        
+
         if (!res.available) {
           wx.showToast({
             title: '请开启蓝牙',
@@ -131,23 +138,23 @@ Page({
   // 清理蓝牙资源
   cleanupBluetooth() {
     console.log('清理蓝牙资源');
-    
+
     // 停止扫描
     this.stopScan();
-    
+
     // 断开连接
     this.disconnect();
-    
+
     // 移除所有监听器（传入空函数移除所有监听）
     try {
-      wx.offBluetoothDeviceFound(() => {});
-      wx.offBluetoothAdapterStateChange(() => {});
-      wx.offBLEConnectionStateChange(() => {});
-      wx.offBLECharacteristicValueChange(() => {});
+      wx.offBluetoothDeviceFound(() => { });
+      wx.offBluetoothAdapterStateChange(() => { });
+      wx.offBLEConnectionStateChange(() => { });
+      wx.offBLECharacteristicValueChange(() => { });
     } catch (error) {
       console.log('移除监听器:', error);
     }
-    
+
     // 关闭蓝牙适配器
     wx.closeBluetoothAdapter({
       success: () => {
@@ -157,6 +164,17 @@ Page({
         console.error('关闭蓝牙适配器失败:', err);
       }
     });
+  },
+
+  // 清理数据定时器
+  clearDataTimer() {
+    if (this.dataTimer) {
+      clearTimeout(this.dataTimer);
+      this.dataTimer = null;
+    }
+    // 清空缓存
+    this.dataBuffer = '';
+    this.hexBuffer = '';
   },
 
   // 开始扫描设备
@@ -171,9 +189,9 @@ Page({
 
     // 先停止之前的扫描
     this.stopScan();
-    
+
     // 清空设备列表，重新开始
-    this.setData({ 
+    this.setData({
       scanning: true,
       devices: []
     });
@@ -184,7 +202,7 @@ Page({
     wx.onBluetoothDeviceFound((result) => {
       const devices = result.devices;
       const newDevices = [...this.data.devices];
-      
+
       devices.forEach(device => {
         if (device.name && !newDevices.find(d => d.deviceId === device.deviceId)) {
           newDevices.push({
@@ -194,7 +212,7 @@ Page({
           });
         }
       });
-      
+
       this.setData({ devices: newDevices });
     });
 
@@ -229,7 +247,7 @@ Page({
   connectDevice(e: any) {
     const deviceId = e.currentTarget.dataset.deviceid;
     const device = this.data.devices.find(d => d.deviceId === deviceId);
-    
+
     if (!device) return;
 
     wx.showLoading({ title: '连接中...' });
@@ -264,7 +282,10 @@ Page({
   disconnect() {
     if (this.data.connectedDevice) {
       console.log('正在断开连接:', this.data.connectedDevice.name);
-      
+
+      // 清理数据定时器
+      this.clearDataTimer();
+
       wx.closeBLEConnection({
         deviceId: this.data.connectedDevice.deviceId,
         success: () => {
@@ -297,10 +318,10 @@ Page({
       deviceId: deviceId,
       success: (res) => {
         // 查找目标服务
-        const targetService = res.services.find(service => 
+        const targetService = res.services.find(service =>
           service.uuid.toUpperCase().includes(this.data.serviceUUID)
         );
-        
+
         if (targetService) {
           this.setupCharacteristic(deviceId, targetService.uuid);
         }
@@ -342,18 +363,38 @@ Page({
     wx.onBLECharacteristicValueChange((result) => {
       const asciiData = this.arrayBufferToString(result.value);
       const hexData = this.arrayBufferToHexString(result.value);
-      const timeStamp = new Date().toLocaleTimeString();
-      
-      // 创建数据记录
-      const dataRecord: DataRecord = {
-        timestamp: timeStamp,
-        type: 'receive',
-        ascii: asciiData,
-        hex: hexData
-      };
-      
-      const newData = [...this.data.receivedData, dataRecord];
-      this.setData({ receivedData: newData });
+
+      // 将数据添加到缓存中
+      this.dataBuffer += asciiData;
+      this.hexBuffer += (this.hexBuffer ? ' ' : '') + hexData;
+
+      // 清除之前的定时器
+      if (this.dataTimer) {
+        clearTimeout(this.dataTimer);
+      }
+
+      // 设置新的定时器，合并数据
+      this.dataTimer = setTimeout(() => {
+        if (this.dataBuffer || this.hexBuffer) {
+          const timeStamp = new Date().toLocaleTimeString();
+
+          // 创建合并后的数据记录
+          const dataRecord: DataRecord = {
+            timestamp: timeStamp,
+            type: 'receive',
+            ascii: this.dataBuffer,
+            hex: this.hexBuffer
+          };
+
+          const newData = [...this.data.receivedData, dataRecord];
+          this.setData({ receivedData: newData });
+
+          // 清空缓存
+          this.dataBuffer = '';
+          this.hexBuffer = '';
+        }
+        this.dataTimer = null;
+      }, this.mergeTimeout);
     });
   },
 
@@ -396,6 +437,7 @@ Page({
 
   // 清空接收数据
   clearData() {
+    this.clearDataTimer();
     this.setData({ receivedData: [] });
   },
 
@@ -403,7 +445,7 @@ Page({
   toggleDisplayMode() {
     const newMode = this.data.displayMode === 'ascii' ? 'hex' : 'ascii';
     this.setData({ displayMode: newMode });
-    
+
     wx.showToast({
       title: `切换到${newMode === 'ascii' ? 'ASCII' : 'HEX'}模式`,
       icon: 'success',
@@ -416,32 +458,33 @@ Page({
     const frameHeader = 0xAA;      // 帧头
     const dataLength = 0x04;       // 指令长度
     const commandId = commandCode; // 指令编号
-    
+
     // 计算校验和（AA + 04 + 指令编号，取低8位）
     const checksum = (frameHeader + dataLength + commandId) & 0xFF;
-    
+
     // 构造4字节数据包
     const packet = new Uint8Array(4);
     packet[0] = frameHeader;  // 0xAA
     packet[1] = dataLength;   // 0x04
     packet[2] = commandId;    // 指令编号
     packet[3] = checksum;     // 校验和
-    
+
     console.log(`构造指令包: [${packet[0].toString(16).toUpperCase()}, ${packet[1].toString(16).toUpperCase()}, ${packet[2].toString(16).toUpperCase()}, ${packet[3].toString(16).toUpperCase()}]`);
-    
+
     return packet.buffer;
   },
 
   // 获取指令编号映射
   getCommandCode(command: string): number {
     const commandMap: { [key: string]: number } = {
-      'heart_rate': 0x01,  // 心率指令
-      'steps': 0x02,       // 步数指令
-      'battery': 0x03,     // 电量指令
-      'sync': 0x04         // 同步指令
+      'temperature': 0x01, // 温度指令
+      'heart_rate': 0x02,  // 心率指令
+      'steps': 0x03,       // 步数指令
+      'battery': 0x04,     // 电量指令
+      'sync': 0x05         // 同步指令
     };
-    
-    return commandMap[command] || 0x00;
+
+    return commandMap[command] || 0x01;
   },
 
   // 发送快捷指令
@@ -469,7 +512,7 @@ Page({
 
     // 构造标准数据包
     const packetBuffer = this.buildCommandPacket(commandCode);
-    
+
     // 生成HEX显示字符串
     const hexBytes = new Uint8Array(packetBuffer);
     const hexString = Array.from(hexBytes)
@@ -485,7 +528,7 @@ Page({
       success: () => {
         console.log(`发送${command}指令成功:`, hexString);
         const timeStamp = new Date().toLocaleTimeString();
-        
+
         // 创建发送数据记录
         const dataRecord: DataRecord = {
           timestamp: timeStamp,
@@ -494,10 +537,10 @@ Page({
           ascii: command.toUpperCase(),
           hex: hexString
         };
-        
+
         const newData = [...this.data.receivedData, dataRecord];
         this.setData({ receivedData: newData });
-        
+
         wx.showToast({
           title: `${command}指令已发送`,
           icon: 'success',

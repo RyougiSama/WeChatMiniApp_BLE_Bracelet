@@ -644,6 +644,11 @@
 }
 
 /* 不同功能按钮的特色颜色 */
+.control-btn.temperature:active {
+  border-color: #20c997;
+  background: linear-gradient(135deg, #e6fffa 0%, #c3f9e8 100%);
+}
+
 .control-btn.heart-rate:active {
   border-color: #ff6b6b;
   background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
@@ -678,6 +683,10 @@
 
 .control-btn:active .btn-icon-wrapper {
   transform: scale(1.1);
+}
+
+.control-btn.temperature:active .btn-icon-wrapper {
+  background: linear-gradient(135deg, #20c997 0%, #12b886 100%);
 }
 
 .control-btn.heart-rate:active .btn-icon-wrapper {
