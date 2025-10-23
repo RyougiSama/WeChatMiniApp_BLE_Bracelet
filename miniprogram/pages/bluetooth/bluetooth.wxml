@@ -159,11 +159,11 @@
         
         <button class="control-btn heart-rate" bindtap="sendQuickCommand" data-command="heart_rate">
           <view class="btn-icon-wrapper">
-            <text class="btn-icon">💓</text>
+            <text class="btn-icon">💊</text>
           </view>
           <view class="btn-info">
-            <text class="btn-title">心率监测</text>
-            <text class="btn-desc">获取实时心率数据</text>
+            <text class="btn-title">健康数据</text>
+            <text class="btn-desc">获取完整健康数据</text>
           </view>
           <view class="btn-indicator">
             <text class="indicator-dot">●</text>
@@ -172,7 +172,7 @@
         
         <button class="control-btn steps" bindtap="sendQuickCommand" data-command="steps">
           <view class="btn-icon-wrapper">
-            <text class="btn-icon">�</text>
+            <text class="btn-icon">👟</text>
           </view>
           <view class="btn-info">
             <text class="btn-title">步数统计</text>
@@ -183,31 +183,19 @@
           </view>
         </button>
         
-        <button class="control-btn battery" bindtap="sendQuickCommand" data-command="battery">
+        <button class="control-btn location" bindtap="sendQuickCommand" data-command="location">
           <view class="btn-icon-wrapper">
-            <text class="btn-icon">🔋</text>
+            <text class="btn-icon">🌍</text>
           </view>
           <view class="btn-info">
-            <text class="btn-title">电量查询</text>
-            <text class="btn-desc">检查设备电量状态</text>
+            <text class="btn-title">定位查询</text>
+            <text class="btn-desc">获取设备位置信息</text>
           </view>
           <view class="btn-indicator">
             <text class="indicator-dot">●</text>
           </view>
         </button>
-        
-        <button class="control-btn sync" bindtap="sendQuickCommand" data-command="sync">
-          <view class="btn-icon-wrapper">
-            <text class="btn-icon">🔄</text>
-          </view>
-          <view class="btn-info">
-            <text class="btn-title">数据同步</text>
-            <text class="btn-desc">同步所有健康数据</text>
-          </view>
-          <view class="btn-indicator">
-            <text class="indicator-dot">●</text>
-          </view>
-        </button>
+
       </view>
     </view>
   </view>

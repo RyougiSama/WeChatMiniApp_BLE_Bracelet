@@ -478,10 +478,9 @@ Page({
   getCommandCode(command: string): number {
     const commandMap: { [key: string]: number } = {
       'temperature': 0x01, // 温度指令
-      'heart_rate': 0x02,  // 心率指令
+      'heart_rate': 0x02,  // 健康数据指令
       'steps': 0x03,       // 步数指令
-      'battery': 0x04,     // 电量指令
-      'sync': 0x05         // 同步指令
+      'location': 0x04     // 定位指令
     };
 
     return commandMap[command] || 0x01;
