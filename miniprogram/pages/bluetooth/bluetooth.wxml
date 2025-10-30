@@ -195,6 +195,19 @@
             <text class="indicator-dot">●</text>
           </view>
         </button>
+        
+        <button class="control-btn gps-sync" bindtap="sendQuickCommand" data-command="gps_sync">
+          <view class="btn-icon-wrapper">
+            <text class="btn-icon">📍</text>
+          </view>
+          <view class="btn-info">
+            <text class="btn-title">同步定位</text>
+            <text class="btn-desc">发送当前GPS位置</text>
+          </view>
+          <view class="btn-indicator">
+            <text class="indicator-dot">●</text>
+          </view>
+        </button>
 
       </view>
     </view>

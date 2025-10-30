@@ -679,6 +679,11 @@
   background: linear-gradient(135deg, #f8f7ff 0%, #ede7f6 100%);
 }
 
+.control-btn.gps-sync:active {
+  border-color: #fa5252;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+}
+
 .btn-icon-wrapper {
   width: 72rpx;
   height: 72rpx;
@@ -709,6 +714,10 @@
 
 .control-btn.location:active .btn-icon-wrapper {
   background: linear-gradient(135deg, #845ec2 0%, #6c5ce7 100%);
+}
+
+.control-btn.gps-sync:active .btn-icon-wrapper {
+  background: linear-gradient(135deg, #fa5252 0%, #e03131 100%);
 }
 
 .btn-icon {

@@ -480,7 +480,8 @@ Page({
       'temperature': 0x01, // 温度指令
       'heart_rate': 0x02,  // 健康数据指令
       'steps': 0x03,       // 步数指令
-      'location': 0x04     // 定位指令
+      'location': 0x04,    // 定位指令
+      'gps_sync': 0x05     // GPS同步指令
     };
 
     return commandMap[command] || 0x01;
@@ -496,6 +497,12 @@ Page({
         title: '请先连接设备',
         icon: 'none'
       });
+      return;
+    }
+
+    // GPS同步指令特殊处理
+    if (command === 'gps_sync') {
+      this.sendGPSLocation();
       return;
     }
 
@@ -551,6 +558,138 @@ Page({
         wx.showToast({
           title: '指令发送失败',
           icon: 'none'
+        });
+      }
+    });
+  },
+
+  // 构造GPS数据包
+  buildGPSPacket(latitude: number, longitude: number): ArrayBuffer {
+    const frameHeader = 0xAA;
+    const dataLength = 0x0C;  // 12字节
+    const commandId = 0x05;   // GPS指令
+
+    // 转换为整数 (×10^6)
+    const latInt = Math.round(latitude * 1000000);
+    const lngInt = Math.round(longitude * 1000000);
+
+    // 构造12字节数据包
+    const packet = new Uint8Array(12);
+    packet[0] = frameHeader;
+    packet[1] = dataLength;
+    packet[2] = commandId;
+
+    // 纬度 (小端序)
+    packet[3] = latInt & 0xFF;
+    packet[4] = (latInt >> 8) & 0xFF;
+    packet[5] = (latInt >> 16) & 0xFF;
+    packet[6] = (latInt >> 24) & 0xFF;
+
+    // 经度 (小端序)
+    packet[7] = lngInt & 0xFF;
+    packet[8] = (lngInt >> 8) & 0xFF;
+    packet[9] = (lngInt >> 16) & 0xFF;
+    packet[10] = (lngInt >> 24) & 0xFF;
+
+    // 计算校验和（参考buildCommandPacket的方式，使用相加求和）
+    let checksum = 0;
+    for (let i = 0; i < 11; i++) {
+      checksum += packet[i];
+    }
+    packet[11] = checksum & 0xFF;  // 取低8位
+
+    console.log(`构造GPS数据包: 纬度${latitude}°, 经度${longitude}°`);
+    console.log(`编码后: 纬度${latInt}, 经度${lngInt}`);
+
+    return packet.buffer;
+  },
+
+  // 发送GPS位置
+  sendGPSLocation() {
+    if (!this.data.connected || !this.data.connectedDevice) {
+      wx.showToast({
+        title: '请先连接设备',
+        icon: 'none'
+      });
+      return;
+    }
+
+    wx.showLoading({ title: '获取位置中...' });
+
+    // 请求位置权限并获取位置
+    wx.getLocation({
+      type: 'gcj02', // 国测局坐标系
+      isHighAccuracy: true, // 高精度定位
+      success: (res) => {
+        console.log('获取到位置:', res.latitude, res.longitude, '精度:', res.accuracy);
+
+        // 构造GPS数据包
+        const gpsPacket = this.buildGPSPacket(res.latitude, res.longitude);
+
+        // 发送数据包
+        wx.writeBLECharacteristicValue({
+          deviceId: this.data.connectedDevice!.deviceId,
+          serviceId: `0000${this.data.serviceUUID}-0000-1000-8000-00805F9B34FB`,
+          characteristicId: `0000${this.data.characteristicUUID}-0000-1000-8000-00805F9B34FB`,
+          value: gpsPacket,
+          success: () => {
+            wx.hideLoading();
+
+            // 生成HEX显示字符串
+            const hexBytes = new Uint8Array(gpsPacket);
+            const hexString = Array.from(hexBytes)
+              .map(byte => byte.toString(16).toUpperCase().padStart(2, '0'))
+              .join(' ');
+
+            // 创建发送记录
+            const timeStamp = new Date().toLocaleTimeString();
+            const latDir = res.latitude >= 0 ? 'N' : 'S';
+            const lngDir = res.longitude >= 0 ? 'E' : 'W';
+            const locationStr = `${latDir} ${Math.abs(res.latitude).toFixed(6)}°, ${lngDir} ${Math.abs(res.longitude).toFixed(6)}°`;
+
+            const dataRecord: DataRecord = {
+              timestamp: timeStamp,
+              type: 'send',
+              command: 'GPS_SYNC',
+              ascii: `GPS同步: ${locationStr}`,
+              hex: hexString
+            };
+
+            this.setData({
+              receivedData: [...this.data.receivedData, dataRecord]
+            });
+
+            wx.showToast({
+              title: 'GPS位置已同步',
+              icon: 'success',
+              duration: 2000
+            });
+          },
+          fail: (err) => {
+            wx.hideLoading();
+            console.error('发送GPS位置失败:', err);
+            wx.showToast({
+              title: '位置同步失败',
+              icon: 'none'
+            });
+          }
+        });
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        console.error('获取位置失败:', err);
+
+        let errorMsg = '获取位置失败';
+        if (err.errMsg.includes('auth deny')) {
+          errorMsg = '请授权位置权限';
+        } else if (err.errMsg.includes('timeout')) {
+          errorMsg = '定位超时，请重试';
+        }
+
+        wx.showToast({
+          title: errorMsg,
+          icon: 'none',
+          duration: 2000
         });
       }
     });
