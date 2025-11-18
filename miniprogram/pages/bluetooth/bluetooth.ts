@@ -506,6 +506,12 @@ Page({
       return;
     }
 
+    // 定位查询指令特殊处理
+    if (command === 'location') {
+      this.queryLocation();
+      return;
+    }
+
     // 获取指令编号
     const commandCode = this.getCommandCode(command);
     if (commandCode === 0x00) {
@@ -563,6 +569,69 @@ Page({
     });
   },
 
+  // 定位查询（只显示位置信息，不发送到设备）
+  queryLocation() {
+    wx.showLoading({ title: '获取位置中...' });
+
+    wx.getLocation({
+      type: 'gcj02',
+      isHighAccuracy: true,
+      success: async (res) => {
+        console.log('查询到位置:', res.latitude, res.longitude, '精度:', res.accuracy);
+
+        // 获取地址信息（使用高德API获取详细地址）
+        wx.showLoading({ title: '解析地址中...' });
+        const address = await this.reverseGeocode(res.latitude, res.longitude);
+        console.log('地址信息:', address);
+
+        wx.hideLoading();
+
+        // 创建查询记录
+        const timeStamp = new Date().toLocaleTimeString();
+        const latDir = res.latitude >= 0 ? 'N' : 'S';
+        const lngDir = res.longitude >= 0 ? 'E' : 'W';
+        const locationStr = `${latDir} ${Math.abs(res.latitude).toFixed(6)}°, ${lngDir} ${Math.abs(res.longitude).toFixed(6)}°`;
+
+        const dataRecord: DataRecord = {
+          timestamp: timeStamp,
+          type: 'send',
+          command: 'LOCATION_QUERY',
+          ascii: `定位查询: ${locationStr}\n地址: ${address}`,
+          hex: 'AA 04 04 B2' // 定位查询指令
+        };
+
+        this.setData({
+          receivedData: [...this.data.receivedData, dataRecord]
+        });
+
+        // 显示详细的位置信息
+        wx.showModal({
+          title: '当前位置信息',
+          content: `坐标: ${locationStr}\n地址: ${address}\n精度: ±${res.accuracy}米`,
+          showCancel: false,
+          confirmText: '确定'
+        });
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        console.error('获取位置失败:', err);
+
+        let errorMsg = '获取位置失败';
+        if (err.errMsg.includes('auth deny')) {
+          errorMsg = '请授权位置权限';
+        } else if (err.errMsg.includes('timeout')) {
+          errorMsg = '定位超时，请重试';
+        }
+
+        wx.showToast({
+          title: errorMsg,
+          icon: 'none',
+          duration: 2000
+        });
+      }
+    });
+  },
+
   // 构造GPS数据包
   buildGPSPacket(latitude: number, longitude: number): ArrayBuffer {
     const frameHeader = 0xAA;
@@ -604,6 +673,81 @@ Page({
     return packet.buffer;
   },
 
+  // 逆地理编码：根据经纬度获取地址信息
+  async reverseGeocode(latitude: number, longitude: number): Promise<string> {
+    // 方案1: 使用高德地图API（推荐，需要申请Key）
+    const useAPI = true; // 设置为true启用API，需要配置Key和域名白名单
+
+    if (useAPI) {
+      return new Promise((resolve) => {
+        wx.request({
+          url: 'https://restapi.amap.com/v3/geocode/regeo',
+          data: {
+            location: `${longitude},${latitude}`,
+            key: 'ffe4748c716e286bb3293ae3afcb77ac', // 高德地图Web服务API Key
+            extensions: 'base'
+          },
+          success: (res: any) => {
+            console.log('高德地图API响应:', res);
+            if (res.data.status === '1' && res.data.regeocode) {
+              const formatted = res.data.regeocode.formatted_address;
+              resolve(formatted);
+            } else {
+              console.error('地址解析失败:', res.data);
+              resolve('地址解析失败');
+            }
+          },
+          fail: (err) => {
+            console.error('请求高德API失败:', err);
+            resolve('地址解析失败');
+          }
+        });
+      });
+    }
+
+    // 方案2: 简化版本 - 根据经纬度范围粗略判断位置（无需API Key）
+    return this.getLocationByCoordinates(latitude, longitude);
+  },
+
+  // 简化的位置判断（无需API，根据坐标范围判断）
+  getLocationByCoordinates(lat: number, lng: number): string {
+    // 中国主要城市坐标范围
+    const regions = [
+      { name: '北京市', latMin: 39.4, latMax: 41.1, lngMin: 115.7, lngMax: 117.5 },
+      { name: '上海市', latMin: 30.7, latMax: 31.6, lngMin: 120.9, lngMax: 122.1 },
+      { name: '广州市', latMin: 22.5, latMax: 23.9, lngMin: 112.9, lngMax: 114.0 },
+      { name: '深圳市', latMin: 22.4, latMax: 22.9, lngMin: 113.7, lngMax: 114.6 },
+      { name: '杭州市', latMin: 29.2, latMax: 30.6, lngMin: 118.3, lngMax: 120.9 },
+      { name: '成都市', latMin: 30.1, latMax: 31.4, lngMin: 102.9, lngMax: 104.9 },
+      { name: '武汉市', latMin: 29.9, latMax: 31.4, lngMin: 113.7, lngMax: 115.1 },
+      { name: '西安市', latMin: 33.7, latMax: 34.8, lngMin: 107.7, lngMax: 109.8 },
+      { name: '重庆市', latMin: 28.1, latMax: 32.2, lngMin: 105.3, lngMax: 110.2 },
+      { name: '天津市', latMin: 38.6, latMax: 40.3, lngMin: 116.7, lngMax: 118.1 },
+      { name: '南京市', latMin: 31.2, latMax: 32.6, lngMin: 118.4, lngMax: 119.2 },
+      { name: '苏州市', latMin: 30.8, latMax: 32.0, lngMin: 119.9, lngMax: 121.4 },
+    ];
+
+    // 检查是否在已知城市范围内
+    for (const region of regions) {
+      if (lat >= region.latMin && lat <= region.latMax &&
+        lng >= region.lngMin && lng <= region.lngMax) {
+        return region.name;
+      }
+    }
+
+    // 根据大范围判断省份/地区
+    if (lat >= 3 && lat <= 53 && lng >= 73 && lng <= 135) {
+      if (lng >= 73 && lng <= 96) return '西藏/新疆地区';
+      if (lat >= 45) return '东北地区';
+      if (lat <= 23) return '华南地区';
+      if (lng <= 108) return '西部地区';
+      if (lng >= 119) return '华东沿海地区';
+      return '中部地区';
+    }
+
+    return `未知区域 (${lat.toFixed(2)}°, ${lng.toFixed(2)}°)`;
+  },
+
   // 发送GPS位置
   sendGPSLocation() {
     if (!this.data.connected || !this.data.connectedDevice) {
@@ -620,8 +764,13 @@ Page({
     wx.getLocation({
       type: 'gcj02', // 国测局坐标系
       isHighAccuracy: true, // 高精度定位
-      success: (res) => {
+      success: async (res) => {
         console.log('获取到位置:', res.latitude, res.longitude, '精度:', res.accuracy);
+
+        // 获取地址信息
+        wx.showLoading({ title: '解析地址中...' });
+        const address = await this.reverseGeocode(res.latitude, res.longitude);
+        console.log('地址信息:', address);
 
         // 构造GPS数据包
         const gpsPacket = this.buildGPSPacket(res.latitude, res.longitude);
@@ -651,7 +800,7 @@ Page({
               timestamp: timeStamp,
               type: 'send',
               command: 'GPS_SYNC',
-              ascii: `GPS同步: ${locationStr}`,
+              ascii: `GPS同步: ${locationStr}\n地址: ${address}`,
               hex: hexString
             };
 
@@ -659,10 +808,12 @@ Page({
               receivedData: [...this.data.receivedData, dataRecord]
             });
 
-            wx.showToast({
+            // 显示详细的位置信息
+            wx.showModal({
               title: 'GPS位置已同步',
-              icon: 'success',
-              duration: 2000
+              content: `坐标: ${locationStr}\n地址: ${address}`,
+              showCancel: false,
+              confirmText: '确定'
             });
           },
           fail: (err) => {
