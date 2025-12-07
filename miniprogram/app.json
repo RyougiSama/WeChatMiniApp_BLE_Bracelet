@@ -3,6 +3,9 @@
     "pages/index/index",
     "pages/bluetooth/bluetooth"
   ],
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
   "window": {
     "navigationBarTextStyle": "white",
     "navigationBarTitleText": "蓝牙智能手环",
